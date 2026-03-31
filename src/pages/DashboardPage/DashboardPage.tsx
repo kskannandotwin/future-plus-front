@@ -1,9 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const [memberCount, setMemberCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchMemberCount = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/members", {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setMemberCount(data.length);
+        }
+      } catch (err) {
+        console.error("Failed to fetch member count:", err);
+      }
+    };
+
+    fetchMemberCount();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -29,8 +50,8 @@ const DashboardPage: React.FC = () => {
     },
     {
       title: "Members",
-      value: "0",
-      detail: "No new members"
+      value: memberCount.toString(),
+      detail: "Total registered members"
     }
   ];
 
@@ -70,7 +91,8 @@ const DashboardPage: React.FC = () => {
           {statItems.map((item, index) => (
             <div 
               key={index} 
-              className="p-6 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:translate-y-[-2px] transition-all duration-200 flex flex-col h-full"
+              className={`p-6 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:translate-y-[-2px] transition-all duration-200 flex flex-col h-full ${item.title === 'Members' ? 'cursor-pointer' : ''}`}
+              onClick={() => item.title === 'Members' && navigate('/members')}
             >
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">
                 {item.title}
