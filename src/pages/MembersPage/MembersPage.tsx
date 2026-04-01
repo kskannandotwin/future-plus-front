@@ -16,6 +16,7 @@ const MembersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -65,8 +66,9 @@ const MembersPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
+      const isEditing = editingId !== null;
+      const response = await fetch(isEditing ? `${API_URL}/${editingId}` : API_URL, {
+        method: isEditing ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -93,6 +95,7 @@ const MembersPage: React.FC = () => {
         totalAmount: "",
       });
       setShowAddForm(false);
+      setEditingId(null);
       fetchMembers();
     } catch (err: any) {
       setError(err.message);
@@ -114,6 +117,31 @@ const MembersPage: React.FC = () => {
     } catch (err: any) {
       setError(err.message);
     }
+  };
+
+  const handleEdit = (member: Member) => {
+    setFormData({
+      name: member.name,
+      investmentAmount: member.investmentAmount.toString(),
+      periodMonths: member.periodMonths.toString(),
+      monthlyReturn: member.monthlyReturn.toString(),
+      totalAmount: member.totalAmount.toString(),
+    });
+    setEditingId(member.id);
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setFormData({
+      name: "",
+      investmentAmount: "",
+      periodMonths: "",
+      monthlyReturn: "",
+      totalAmount: "",
+    });
+    setEditingId(null);
+    setShowAddForm(false);
   };
 
   const handleLogout = () => {
@@ -166,7 +194,9 @@ const MembersPage: React.FC = () => {
 
         {showAddForm && (
           <section className="mb-10 p-6 bg-card border border-border rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-            <h2 className="text-xl font-bold mb-6">Create New Member</h2>
+            <h2 className="text-xl font-bold mb-6">
+              {editingId ? "Edit Member" : "Create New Member"}
+            </h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Name</label>
@@ -227,13 +257,22 @@ const MembersPage: React.FC = () => {
                   placeholder="Final value"
                 />
               </div>
-              <div className="flex items-end">
+               <div className="flex items-end gap-3">
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-all"
+                  className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-all"
                 >
-                  Create Member
+                  {editingId ? "Update Member" : "Create Member"}
                 </button>
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="px-4 py-2.5 border border-border rounded-xl font-semibold text-muted-foreground hover:bg-accent transition-all"
+                  >
+                    Cancel
+                  </button>
+                )}
               </div>
             </form>
           </section>
@@ -244,6 +283,7 @@ const MembersPage: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-muted/50 border-b border-border">
+                  <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">S.No</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">ID</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Name</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Investment</th>
@@ -256,7 +296,7 @@ const MembersPage: React.FC = () => {
               <tbody className="divide-y divide-border">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                       <div className="flex justify-center items-center gap-2">
                         <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
                         Loading members...
@@ -265,20 +305,30 @@ const MembersPage: React.FC = () => {
                   </tr>
                 ) : members.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                       No members found. Add your first member to get started.
                     </td>
                   </tr>
                 ) : (
-                  members.map((member) => (
+                  members.map((member, index) => (
                     <tr key={member.id} className="hover:bg-accent/5 transition-colors">
-                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground">#{member.id}</td>
+                      <td className="px-6 py-4 font-mono text-sm text-muted-foreground">{index + 1}</td>
+                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground font-medium">#{member.id.toString().padStart(3, '0')}</td>
                       <td className="px-6 py-4 font-semibold text-foreground">{member.name}</td>
                       <td className="px-6 py-4 text-foreground">₹{Number(member.investmentAmount).toLocaleString()}</td>
                       <td className="px-6 py-4 text-foreground">{member.periodMonths} Months</td>
                       <td className="px-6 py-4 text-foreground text-green-600 font-medium">₹{Number(member.monthlyReturn).toLocaleString()}</td>
                       <td className="px-6 py-4 text-foreground font-bold">₹{Number(member.totalAmount).toLocaleString()}</td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleEdit(member)}
+                          className="p-2 text-muted-foreground hover:bg-accent rounded-lg transition-colors"
+                          title="Edit member"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
                         <button 
                           onClick={() => handleDelete(member.id)}
                           className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
