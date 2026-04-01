@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 interface Member {
   id: number;
@@ -8,6 +8,7 @@ interface Member {
   periodMonths: number;
   monthlyReturn: number;
   totalAmount: number;
+  joinedDate: string;
 }
 
 const MembersPage: React.FC = () => {
@@ -25,6 +26,7 @@ const MembersPage: React.FC = () => {
     periodMonths: "",
     monthlyReturn: "",
     totalAmount: "",
+    joinedDate: "",
   });
 
   const API_URL = "http://localhost:3000/members";
@@ -79,6 +81,7 @@ const MembersPage: React.FC = () => {
           periodMonths: Number(formData.periodMonths),
           monthlyReturn: Number(formData.monthlyReturn),
           totalAmount: Number(formData.totalAmount),
+          joinedDate: formData.joinedDate,
         }),
       });
 
@@ -93,6 +96,7 @@ const MembersPage: React.FC = () => {
         periodMonths: "",
         monthlyReturn: "",
         totalAmount: "",
+        joinedDate: "",
       });
       setShowAddForm(false);
       setEditingId(null);
@@ -126,6 +130,7 @@ const MembersPage: React.FC = () => {
       periodMonths: member.periodMonths.toString(),
       monthlyReturn: member.monthlyReturn.toString(),
       totalAmount: member.totalAmount.toString(),
+      joinedDate: member.joinedDate || "",
     });
     setEditingId(member.id);
     setShowAddForm(true);
@@ -139,6 +144,7 @@ const MembersPage: React.FC = () => {
       periodMonths: "",
       monthlyReturn: "",
       totalAmount: "",
+      joinedDate: "",
     });
     setEditingId(null);
     setShowAddForm(false);
@@ -257,7 +263,18 @@ const MembersPage: React.FC = () => {
                   placeholder="Final value"
                 />
               </div>
-               <div className="flex items-end gap-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Joined Date (DD-MM-YYYY)</label>
+                <input
+                  required
+                  name="joinedDate"
+                  value={formData.joinedDate}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  placeholder="01-01-2023"
+                />
+              </div>
+               <div className="flex items-end gap-3 lg:col-span-2">
                 <button
                   type="submit"
                   className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-all"
@@ -288,6 +305,7 @@ const MembersPage: React.FC = () => {
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Name</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Investment</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Period</th>
+                  <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Joined</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Monthly Return</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Amount</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>
@@ -314,9 +332,17 @@ const MembersPage: React.FC = () => {
                     <tr key={member.id} className="hover:bg-accent/5 transition-colors">
                       <td className="px-6 py-4 font-mono text-sm text-muted-foreground">{index + 1}</td>
                       <td className="px-6 py-4 font-mono text-xs text-muted-foreground font-medium">#{member.id.toString().padStart(3, '0')}</td>
-                      <td className="px-6 py-4 font-semibold text-foreground">{member.name}</td>
+                      <td className="px-6 py-4">
+                        <Link 
+                          to={`/member-profit/${member.id}`}
+                          className="font-semibold text-primary hover:underline text-left transition-all block"
+                        >
+                          {member.name}
+                        </Link>
+                      </td>
                       <td className="px-6 py-4 text-foreground">₹{Number(member.investmentAmount).toLocaleString()}</td>
                       <td className="px-6 py-4 text-foreground">{member.periodMonths} Months</td>
+                      <td className="px-6 py-4 text-foreground font-medium text-muted-foreground">{member.joinedDate}</td>
                       <td className="px-6 py-4 text-foreground text-green-600 font-medium">₹{Number(member.monthlyReturn).toLocaleString()}</td>
                       <td className="px-6 py-4 text-foreground font-bold">₹{Number(member.totalAmount).toLocaleString()}</td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
