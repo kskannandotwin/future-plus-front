@@ -6,6 +6,7 @@ interface MonthlyProfit {
   date: string;
   profit: number;
   loss: number;
+  brokerCharge: number;
   netTotal: number;
 }
 
@@ -29,6 +30,7 @@ const MonthlyProfitPage: React.FC = () => {
     date: "",
     profit: "",
     loss: "",
+    brokerCharge: "",
   });
 
   const API_URL = `http://localhost:3000/members/${id}`;
@@ -90,6 +92,7 @@ const MonthlyProfitPage: React.FC = () => {
           date: formData.date,
           profit: Number(formData.profit),
           loss: Number(formData.loss),
+          brokerCharge: Number(formData.brokerCharge),
         }),
       });
 
@@ -98,7 +101,7 @@ const MonthlyProfitPage: React.FC = () => {
         throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'add'} profit record`);
       }
 
-      setFormData({ date: "", profit: "", loss: "" });
+      setFormData({ date: "", profit: "", loss: "", brokerCharge: "" });
       setShowAddForm(false);
       setEditingId(null);
       fetchData();
@@ -128,6 +131,7 @@ const MonthlyProfitPage: React.FC = () => {
       date: record.date,
       profit: record.profit.toString(),
       loss: record.loss.toString(),
+      brokerCharge: (record.brokerCharge || 0).toString(),
     });
     setEditingId(record.id);
     setShowAddForm(true);
@@ -135,7 +139,7 @@ const MonthlyProfitPage: React.FC = () => {
   };
 
   const handleCancelEdit = () => {
-    setFormData({ date: "", profit: "", loss: "" });
+    setFormData({ date: "", profit: "", loss: "", brokerCharge: "" });
     setEditingId(null);
     setShowAddForm(false);
   };
@@ -230,6 +234,18 @@ const MonthlyProfitPage: React.FC = () => {
                   placeholder="0"
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Broker Charge (INR)</label>
+                <input
+                  required
+                  type="number"
+                  name="brokerCharge"
+                  value={formData.brokerCharge}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
+                  placeholder="0"
+                />
+              </div>
               <div className="md:col-span-3">
                 <button
                   type="submit"
@@ -250,6 +266,7 @@ const MonthlyProfitPage: React.FC = () => {
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Date</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Profit</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Loss</th>
+                  <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Broker Charge</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Net Total</th>
                   <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>
                 </tr>
@@ -257,7 +274,7 @@ const MonthlyProfitPage: React.FC = () => {
               <tbody className="divide-y divide-border">
                 {profits.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                       {loading ? "Loading..." : "No records found for this member."}
                     </td>
                   </tr>
@@ -267,6 +284,7 @@ const MonthlyProfitPage: React.FC = () => {
                       <td className="px-6 py-4 font-medium text-foreground">{record.date}</td>
                       <td className="px-6 py-4 text-green-600 font-medium">₹{Number(record.profit).toLocaleString()}</td>
                       <td className="px-6 py-4 text-red-600 font-medium">₹{Number(record.loss).toLocaleString()}</td>
+                      <td className="px-6 py-4 text-orange-600 font-medium">₹{Number(record.brokerCharge || 0).toLocaleString()}</td>
                       <td className={`px-6 py-4 font-bold ${Number(record.netTotal) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ₹{Number(record.netTotal).toLocaleString()}
                       </td>
