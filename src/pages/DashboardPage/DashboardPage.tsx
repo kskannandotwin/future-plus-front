@@ -5,6 +5,7 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [memberCount, setMemberCount] = useState<number>(0);
+  const [totalInvestment, setTotalInvestment] = useState<number>(0);
 
   useEffect(() => {
     const fetchMemberCount = async () => {
@@ -17,6 +18,8 @@ const DashboardPage: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           setMemberCount(data.length);
+          const total = data.reduce((sum: number, m: any) => sum + Number(m.investmentAmount ?? 0), 0);
+          setTotalInvestment(total);
         }
       } catch (err) {
         console.error("Failed to fetch member count:", err);
@@ -34,9 +37,9 @@ const DashboardPage: React.FC = () => {
 
   const statItems = [
     {
-      title: "Overview",
-      value: "Active",
-      detail: "System status: Normal"
+      title: "Total Investment",
+      value: `₹${totalInvestment.toLocaleString()}`,
+      detail: "Sum of all members' investments"
     },
     {
       title: "Usage",
